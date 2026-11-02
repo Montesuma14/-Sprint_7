@@ -1,26 +1,21 @@
-import static io.restassured.RestAssured.given;
-import static org.hamcrest.Matchers.instanceOf;
+package tests;
 
-import io.restassured.RestAssured;
+
+import static org.hamcrest.Matchers.instanceOf;
+import client.OrderClient;
 import io.restassured.response.Response;
 import java.util.List;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import support.Order;
+import support.OrderTrack;
 
 public class CreateOrderTests {
 
   int track = 0;
-
-  @BeforeAll
-  static void setUp() {
-    RestAssured.baseURI = "https://qa-scooter.praktikum-services.ru";
-  }
-
 
   static Stream<Arguments> orderData() {
     return Stream.of(
@@ -73,12 +68,8 @@ public class CreateOrderTests {
 
   @ParameterizedTest
   @MethodSource("orderData")
-  public void createNewOrderAndCheckResponse(Order order) throws Exception {
-    Response response = given()
-        .header("Content-type", "application/json")
-        .body(order)
-        .when()
-        .post("/api/v1/orders");
+  public void createNewOrderAndCheckResponse(Order order) {
+    Response response = OrderClient.createOrderRequest(order);
 
     response.then().statusCode(201);
     response.then()
@@ -89,14 +80,8 @@ public class CreateOrderTests {
   @AfterEach
   public void returnBack() {
     if (track != 0) {
-
-      String json =
-          "{\"track\": \"" + track + "\"}";
-
-      given()
-          .header("Content-type", "application/json")
-          .body(json)
-          .put("/api/v1/orders/cancel")
+      Response response = OrderClient.cancelOrderRequest(new OrderTrack(track));
+      response
           .then()
           .statusCode(200);
       track = 0;
