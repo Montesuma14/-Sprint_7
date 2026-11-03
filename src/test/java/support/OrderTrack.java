@@ -1,7 +1,6 @@
 package support;
 
 public class OrderTrack {
-
   private int track;
 
   public OrderTrack() {

@@ -1,0 +1,1 @@
+{"uuid":"6db2629d-74c1-4b03-a82a-cc71a0175b7a","name":"Создание курьера c валидными данными","children":["95abbeb3-2355-48e9-9495-fde99c95e5eb"],"befores":[],"afters":[{"name":"returnBack","status":"passed","stage":"finished","steps":[],"attachments":[],"parameters":[],"start":1793710067074,"stop":1793710068934}],"start":1793710053658,"stop":1793710068936}

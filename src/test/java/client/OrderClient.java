@@ -1,7 +1,6 @@
 package client;
 
 import static io.restassured.RestAssured.given;
-
 import io.restassured.response.Response;
 import support.ApiClient;
 import support.Order;
@@ -18,10 +17,10 @@ public class OrderClient {
   }
 
   public static Response cancelOrderRequest(OrderTrack orderTrack) {
-      return given()
-          .spec(ApiClient.SPEC)
-          .body(orderTrack)
-          .put("/api/v1/orders/cancel");
+    return given()
+        .spec(ApiClient.SPEC)
+        .body(orderTrack)
+        .put("/api/v1/orders/cancel");
   }
 
   public static Response ordersRequest() {
