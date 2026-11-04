@@ -1,5 +1,4 @@
 package tests;
-
 import io.qameta.allure.Allure;
 import io.restassured.response.Response;
 import java.util.List;
