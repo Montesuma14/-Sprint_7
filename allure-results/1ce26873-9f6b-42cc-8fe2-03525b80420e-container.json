@@ -1,1 +1,0 @@
-{"uuid":"1ce26873-9f6b-42cc-8fe2-03525b80420e","name":"Создание курьера с повторяющимся логином","children":["e0d925a2-e05d-4f14-a40f-c8f11e903696"],"befores":[],"afters":[{"name":"returnBack","status":"passed","stage":"finished","steps":[],"attachments":[],"parameters":[],"start":1793710070546,"stop":1793710072294}],"start":1793710068938,"stop":1793710072305}

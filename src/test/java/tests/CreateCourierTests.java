@@ -1,13 +1,13 @@
 package tests;
 
-import client.CourierClient;
-import static org.hamcrest.Matchers.equalTo;
+
+import io.qameta.allure.Allure;
 import io.qameta.allure.Description;
 import io.restassured.response.Response;
-import java.util.Map;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import steps.CourierSteps;
 import support.Courier;
 
 public class CreateCourierTests {
@@ -22,12 +22,10 @@ public class CreateCourierTests {
   public void createNewCourierAndCheckResponse() {
     login = Courier.generateRandomLogin12();
     Courier courier = new Courier(login, password, "Bob");
-    Response response = CourierClient.createCourierRequest(courier);
-    response.then().statusCode(201);
+    Response response = CourierSteps.sendPostRequestCourier(courier);
+    CourierSteps.compareRequestStatusCode(response, 201);
     isCourierCreated = true;
-    response.then()
-        .body("", equalTo(Map.of("ok", true)));
-
+    CourierSteps.compareRequestOKMessageText(response);
   }
 
   @DisplayName("Создание курьера без пароля")
@@ -38,11 +36,10 @@ public class CreateCourierTests {
     Courier courier = new Courier();
     courier.setLogin(login);
     courier.setFirstName("Bob");
-    Response response = CourierClient.createCourierRequest(courier);
-    response.then()
-        .statusCode(400)
-        .body("message", equalTo("Недостаточно данных для создания учетной записи"));
-
+    Response response = CourierSteps.sendPostRequestCourier(courier);
+    CourierSteps.compareRequestStatusCode(response, 400);
+    CourierSteps.compareRequestErrorMessageText(response,
+        "Недостаточно данных для создания учетной записи");
   }
 
   @DisplayName("Создание курьера без логина")
@@ -52,10 +49,10 @@ public class CreateCourierTests {
     Courier courier = new Courier();
     courier.setPassword(password);
     courier.setFirstName("Bob");
-    Response response = CourierClient.createCourierRequest(courier);
-    response.then()
-        .statusCode(400)
-        .body("message", equalTo("Недостаточно данных для создания учетной записи"));
+    Response response = CourierSteps.sendPostRequestCourier(courier);
+    CourierSteps.compareRequestStatusCode(response, 400);
+    CourierSteps.compareRequestErrorMessageText(response,
+        "Недостаточно данных для создания учетной записи");
 
   }
 
@@ -65,11 +62,10 @@ public class CreateCourierTests {
   public void createNewCourierWithoutFirstNameAndCheckStatusCode() {
     login = Courier.generateRandomLogin12();
     Courier courier = new Courier(login, password);
-    Response response = CourierClient.createCourierRequest(courier);
-    response.then()
-        .statusCode(201);
-    response.then()
-        .body("", equalTo(Map.of("ok", true)));
+    Response response = CourierSteps.sendPostRequestCourier(courier);
+    CourierSteps.compareRequestStatusCode(response, 201);
+    isCourierCreated = true;
+    CourierSteps.compareRequestOKMessageText(response);
 
   }
 
@@ -79,25 +75,25 @@ public class CreateCourierTests {
   public void createTwoCouriersWithEqualsLoginsAndCheckingResponse() {
     login = Courier.generateRandomLogin12();
     Courier courier = new Courier(login, password, "Bob");
-
-    Response response = CourierClient.createCourierRequest(courier);
-
-    response.then().statusCode(201);
+    Response response = CourierSteps.sendPostRequestCourier(courier);
+    CourierSteps.compareRequestStatusCode(response, 201);
     isCourierCreated = true;
-    response = CourierClient.createCourierRequest(courier);
-    response.then()
-        .statusCode(409)
-        .body("message", equalTo("Этот логин уже используется"));
+    response = CourierSteps.sendPostRequestCourier(courier);
+    CourierSteps.compareRequestStatusCode(response, 409);
+    CourierSteps.compareRequestErrorMessageText(response, "Этот логин уже используется");
   }
 
+
   @AfterEach
-  public void returnBack() {
+  public void tearDown() {
+    Allure.getLifecycle().updateFixture(
+        fixture -> fixture.setName("Очистка тестовых данных")
+    );
     if (isCourierCreated) {
-      Response response = CourierClient.loginCourierRequest(new Courier(login, password));
+      Response response = CourierSteps.sendPostRequestCourierLogin(new Courier(login, password));
       int id = response.jsonPath().getInt("id");
-      CourierClient.deleteCourierRequest(id)
-          .then()
-          .statusCode(200);
+      Response response1 = CourierSteps.sendPostRequestCourierDelete(id);
+      CourierSteps.compareRequestStatusCode(response1, 200);
       isCourierCreated = false;
     }
   }

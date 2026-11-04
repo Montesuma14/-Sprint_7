@@ -1,0 +1,1 @@
+{"uuid":"365a2982-8085-46d5-b714-604039188f28","name":"Создание курьера без пароля","children":["6f8cb5a3-b00d-41b5-94a0-d853413cee6d"],"befores":[],"afters":[{"name":"Очистка тестовых данных","status":"passed","stage":"finished","steps":[],"attachments":[],"parameters":[],"start":1793799533555,"stop":1793799533555}],"start":1793799532580,"stop":1793799533562}

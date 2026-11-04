@@ -1,10 +1,9 @@
 package tests;
 
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.instanceOf;
-import client.CourierClient;
+import io.qameta.allure.Allure;
 import io.qameta.allure.Description;
 import org.junit.jupiter.api.DisplayName;
+import steps.CourierSteps;
 import support.Courier;
 import io.restassured.response.Response;
 import org.junit.jupiter.api.AfterEach;
@@ -20,8 +19,8 @@ public class LoginCourierTests {
   @BeforeEach
   public void createCourier() {
     login = Courier.generateRandomLogin12();
-    Response response = CourierClient.createCourierRequest(new Courier(login, password, "Bob"));
-    response.then().statusCode(201);
+    Response response = CourierSteps.sendPostRequestCourier(new Courier(login, password, "Bob"));
+    CourierSteps.compareRequestStatusCode(response, 201);
     isCourierCreated = true;
   }
 
@@ -29,10 +28,9 @@ public class LoginCourierTests {
   @Description("Проверка  логина курьера с валидными данными  и ответа запроса")
   @Test
   public void loginNewCourierAndCheckResponse() {
-    Response response = CourierClient.loginCourierRequest(new Courier(login, password));
-    response.then().statusCode(200);
-    response.then()
-        .body("id", instanceOf(Integer.class));
+    Response response = CourierSteps.sendPostRequestCourierLogin(new Courier(login, password));
+    CourierSteps.compareRequestStatusCode(response, 200);
+    CourierSteps.compareRequestIdInMessageText(response);
   }
 
   @DisplayName("Логин курьера без пароля")
@@ -41,10 +39,9 @@ public class LoginCourierTests {
   public void loginNewCourierWithoutPasswordAndCheckStatusCode() {
     Courier courier = new Courier();
     courier.setLogin(login);
-    Response response = CourierClient.loginCourierRequest(courier);
-    response.then()
-        .statusCode(400)
-        .body("message", equalTo("Недостаточно данных для входа"));
+    Response response = CourierSteps.sendPostRequestCourierLogin(courier);
+    CourierSteps.compareRequestStatusCode(response, 400);
+    CourierSteps.compareRequestErrorMessageText(response, "Недостаточно данных для входа");
   }
 
   @DisplayName("Логин курьера без поля логин")
@@ -53,40 +50,42 @@ public class LoginCourierTests {
   public void loginNewCourierWithoutLoginAndCheckStatusCode() {
     Courier courier = new Courier();
     courier.setPassword(password);
-    Response response = CourierClient.loginCourierRequest(courier);
-    response.then()
-        .statusCode(400)
-        .body("message", equalTo("Недостаточно данных для входа"));
+    Response response = CourierSteps.sendPostRequestCourierLogin(courier);
+    CourierSteps.compareRequestStatusCode(response, 400);
+    CourierSteps.compareRequestErrorMessageText(response, "Недостаточно данных для входа");
   }
 
   @DisplayName("Логин курьера с некорректным паролем")
   @Description("Проверка  логина курьера с некорректным паролем   и ответа запроса")
   @Test
   public void loginNewCourierWithWrongPasswordAndCheckStatusCode() {
-    Response response = CourierClient.loginCourierRequest(new Courier(login, password + password));
-    response.then()
-        .statusCode(404)
-        .body("message", equalTo("Учетная запись не найдена"));
+    Response response = CourierSteps.sendPostRequestCourierLogin(
+        new Courier(login, password + password));
+    CourierSteps.compareRequestStatusCode(response, 404);
+    CourierSteps.compareRequestErrorMessageText(response, "Учетная запись не найдена");
   }
 
   @DisplayName("Логин курьера с некоректным логином")
   @Description("Проверка  логина курьера с некорректным логином и ответа запроса")
   @Test
   public void loginNewCourierWithWrongLoginAndCheckStatusCode() {
-    Response response = CourierClient.loginCourierRequest(new Courier(login + "test", password));
-    response.then()
-        .statusCode(404)
-        .body("message", equalTo("Учетная запись не найдена"));
+    Response response = CourierSteps.sendPostRequestCourierLogin(
+        new Courier(login + "test", password));
+    CourierSteps.compareRequestStatusCode(response, 404);
+    CourierSteps.compareRequestErrorMessageText(response, "Учетная запись не найдена");
   }
 
   @AfterEach
-  public void returnBack() {
+  public void tearDown() {
     if (isCourierCreated) {
+      Allure.getLifecycle().updateFixture(
+          fixture -> fixture.setName("Очистка тестовых данных")
+      );
       Response response =
-          CourierClient.loginCourierRequest(new Courier(login, password));
-      response.then().statusCode(200);
+          CourierSteps.sendPostRequestCourierLogin(new Courier(login, password));
+      CourierSteps.compareRequestStatusCode(response,200);
       int id = response.jsonPath().getInt("id");
-      CourierClient.deleteCourierRequest(id);
+      CourierSteps.sendPostRequestCourierDelete(id);
       isCourierCreated = false;
     }
   }

@@ -1,9 +1,6 @@
 package tests;
 
-import static org.hamcrest.Matchers.instanceOf;
-import client.OrderClient;
 import io.qameta.allure.Allure;
-import io.qameta.allure.Description;
 import io.restassured.response.Response;
 import java.util.List;
 import java.util.stream.Stream;
@@ -12,6 +9,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import steps.OrderSteps;
 import support.Order;
 import support.OrderTrack;
 
@@ -73,21 +71,20 @@ public class CreateOrderTests {
   @MethodSource("orderData")
   public void createNewOrderAndCheckResponse(String scenario, Order order) {
     Allure.description("Проверка успешного создания заказа с валидными данными: " + scenario);
-    Response response = OrderClient.createOrderRequest(order);
-
-    response.then().statusCode(201);
-    response.then()
-        .body("track", instanceOf(Integer.class));
+    Response response = OrderSteps.sendPostRequestOrders(order);
+    OrderSteps.compareRequestStatusCode(response,201);
+    OrderSteps.compareRequestTrackInMessageText(response);
     track = response.jsonPath().getInt("track");
   }
 
   @AfterEach
-  public void returnBack() {
+  public void tearDown() {
     if (track != 0) {
-      Response response = OrderClient.cancelOrderRequest(new OrderTrack(track));
-      response
-          .then()
-          .statusCode(200);
+      Allure.getLifecycle().updateFixture(
+          fixture -> fixture.setName("Очистка тестовых данных")
+      );
+      Response response = OrderSteps.sendPutRequestOrdersCancel(new OrderTrack(track));
+      OrderSteps.compareRequestStatusCode(response, 200);
       track = 0;
     }
   }
